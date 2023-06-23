@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const User = require("../schemas/user.js");
+const { Users } = require("../models");
 
 // 회원 가입 API
 router.post("/signup", async (req, res) => {
   const { nickname, password, confirmPassword } = req.body;
+
+  // 3가지 항목 입력하지 않을시 오류
+  if (!nickname || !password || !confirmPassword) {
+    return res.status(400).json({ errorMessage: "데이터 형식이 올바르지 않습니다." });
+  }
 
   // 닉네임 : 최소 3자 이상, 알파벳 대소문자, 숫자로 구성
   // 알파벳, 숫자로만 구성 조건 추가
@@ -24,20 +29,15 @@ router.post("/signup", async (req, res) => {
   }
 
   // DB에 존재하는 닉네임 입력시 오류
-  const isExistUser = await User.findOne({ nickname });
+  const isExistUser = await Users.findOne({ where: { nickname } });
 
   if (isExistUser) {
     return res.status(412).json({ errorMessage: "중복된 닉네임입니다." });
   }
 
-  // 3가지 항목 입력하지 않을시 오류
-  if (!nickname || !password || !confirmPassword) {
-    return res.status(400).json({ errorMessage: "데이터 형식이 올바르지 않습니다." });
-  }
-
   // DB에 회원가입 정보 저장하기
   // 패스워드 암호화해서 저장하기 -> crypto 라이브러리 사용
-  const user = new User({ nickname, password });
+  const user = new Users({ nickname, password });
   await user.save();
 
   return res.status(201).json({ message: "회원 가입에 성공하였습니다." });

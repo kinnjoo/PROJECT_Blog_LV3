@@ -7,9 +7,6 @@ const port = 3000;
 const usersRouter = require("./routes/users.js");
 // const authRouter = require("./routes/auth.js");
 
-const connent = require("./schemas");
-connent();
-
 app.use(express.json());
 app.use(cookieParser());
 
