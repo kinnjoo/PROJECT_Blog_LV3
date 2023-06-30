@@ -45,7 +45,7 @@ router.get("/posts/:postId", async (req, res) => {
 
 // 게시글 작성 API
 router.post("/posts", authMiddleware, async (req, res) => {
-  const { userId } = res.locals.user;
+  const userId = res.locals.user;
   const { title, content } = req.body;
 
   if (!title || !content) {
@@ -60,7 +60,7 @@ router.post("/posts", authMiddleware, async (req, res) => {
 
 // 게시글 수정 API
 router.put("/posts/:postId", authMiddleware, async (req, res) => {
-  const { userId } = res.locals.user;
+  const userId = res.locals.user;
   const { postId } = req.params;
   const { title, content } = req.body;
 
@@ -86,7 +86,7 @@ router.put("/posts/:postId", authMiddleware, async (req, res) => {
 
 // 게시글 삭제 API
 router.delete("/posts/:postId", authMiddleware, async (req, res) => {
-  const { userId } = res.locals.user;
+  const userId = res.locals.user;
   const { postId } = req.params;
 
   const findPostId = await Posts.findOne({ where: { postId } });

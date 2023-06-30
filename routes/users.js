@@ -26,8 +26,6 @@ router.post("/signup", async (req, res) => {
     return res
       .status(412)
       .json({ errorMessage: "닉네임의 형식이 올바르지 않습니다." });
-  } else if (isExistUser) {
-    return res.status(412).json({ errorMessage: "중복된 닉네임입니다." });
   } else if (password.includes(nickname)) {
     return res
       .status(412)
@@ -40,6 +38,8 @@ router.post("/signup", async (req, res) => {
     return res
       .status(412)
       .json({ errorMessage: "패스워드가 일치하지 않습니다." });
+  } else if (isExistUser) {
+    return res.status(412).json({ errorMessage: "중복된 닉네임입니다." });
   }
 
   // DB에 회원가입 정보 저장하기

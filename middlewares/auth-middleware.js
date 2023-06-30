@@ -21,12 +21,9 @@ module.exports = async (req, res, next) => {
     // authToken이 만료되었는지 확인
     // authToken이 서버가 발급한 토큰이 맞는지 검증
     const decodedToken = jwt.verify(authToken, secretKey.key);
-    const userId = decodedToken.userId;
 
-    // authToken에 있는 userId에 해당하는 사용자가 실제 DB에 존재하는지 확인
-    const user = await Users.findOne({ where: { userId } });
-    // console.log("터미널 확인=>", user);
-    res.locals.user = user;
+    const userId = decodedToken.userId;
+    res.locals.user = userId;
 
     next();
   } catch (error) {
