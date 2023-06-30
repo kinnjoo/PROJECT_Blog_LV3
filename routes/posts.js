@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { Posts } = require("../models");
+const { Users, Posts } = require("../models");
 const authMiddleware = require("../middlewares/auth-middleware.js");
 
 const { Op } = require("sequelize");
@@ -10,25 +10,37 @@ const { Op } = require("sequelize");
 router.get("/posts", async (req, res) => {
   const postList = await Posts.findAll({
     attributes: ["postId", "title", "createdAt", "updatedAt"],
-    order: [["createdAt", "DESC"]]
+    order: [["createdAt", "DESC"]],
+    include: [
+      {
+        model: Users,
+        attributes: ["nickname"],
+      },
+    ],
   });
 
   res.status(200).json({ posts: postList });
 });
 
 // 게시글 상세 조회 API
-router.get('/posts/:postId', async (req, res) => {
+router.get("/posts/:postId", async (req, res) => {
   const { postId } = req.params;
 
   const postDetail = await Posts.findOne({
     attributes: ["postId", "title", "content", "createdAt", "updatedAt"],
-    where: { postId }
+    where: { postId },
+    include: [
+      {
+        model: Users,
+        attributes: ["nickname"],
+      },
+    ],
   });
 
   if (!postDetail) {
     res.status(404).json({ errorMessage: "게시글 조회에 실패하였습니다." });
   }
-  res.json({ post: postDetail });
+  return res.json({ post: postDetail });
 });
 
 // 게시글 작성 API
@@ -37,12 +49,13 @@ router.post("/posts", authMiddleware, async (req, res) => {
   const { title, content } = req.body;
 
   if (!title || !content) {
-    return res.status(400).json({ errorMessage: "게시글 제목 또는 내용이 비어있습니다." });
+    return res
+      .status(400)
+      .json({ errorMessage: "게시글 제목 또는 내용이 비어있습니다." });
   }
 
   await Posts.create({ title, content, UserId: userId });
   return res.status(201).json({ message: "게시글을 생성하였습니다." });
-
 });
 
 // 게시글 수정 API
@@ -54,15 +67,19 @@ router.put("/posts/:postId", authMiddleware, async (req, res) => {
   const findPostId = await Posts.findOne({ where: { postId } });
 
   if (!findPostId) {
-    return res.status(404).json({ errorMessage: "게시글 조회에 실패하였습니다." })
+    return res
+      .status(404)
+      .json({ errorMessage: "게시글 조회에 실패하였습니다." });
   } else if (userId !== findPostId.UserId) {
-    return res.status(403).json({ errorMessage: "게시글의 수정 권한이 존재하지 않습니다." });
+    return res
+      .status(403)
+      .json({ errorMessage: "게시글의 수정 권한이 존재하지 않습니다." });
   } else if (!title || !content) {
-    return res.status(412).json({ errorMessage: "게시글 제목 또는 내용이 비어있습니다." });
+    return res
+      .status(412)
+      .json({ errorMessage: "게시글 제목 또는 내용이 비어있습니다." });
   }
-  await Posts.update(
-    { title, content },
-    { where: { [Op.and]: [{ postId }, { UserId: userId }] } });
+  await Posts.update({ title, content }, { where: { [Op.and]: [{ postId }] } });
 
   return res.status(200).json({ message: "게시글을 수정하였습니다." });
 });
@@ -75,12 +92,18 @@ router.delete("/posts/:postId", authMiddleware, async (req, res) => {
   const findPostId = await Posts.findOne({ where: { postId } });
 
   if (!findPostId) {
-    return res.status(404).json({ errorMessage: "게시글 조회에 실패하였습니다." });
+    return res
+      .status(404)
+      .json({ errorMessage: "게시글 조회에 실패하였습니다." });
   } else if (userId !== findPostId.UserId) {
-    return res.status(403).json({ errorMessage: "게시글의 삭제 권한이 존재하지 않습니다." });
+    return res
+      .status(403)
+      .json({ errorMessage: "게시글의 삭제 권한이 존재하지 않습니다." });
   }
 
-  await Posts.destroy({ where: { [Op.and]: [{ postId }, { UserId: userId }] } });
+  await Posts.destroy({
+    where: { [Op.and]: [{ postId }] },
+  });
   return res.status(200).json({ message: "게시글을 삭제하였습니다." });
 });
 
