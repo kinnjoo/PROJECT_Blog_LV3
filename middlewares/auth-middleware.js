@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { Users } = require("../models");
+const secretKey = require("../config/secretKey.json");
 
 module.exports = async (req, res, next) => {
   const { Authorization } = req.cookies;
@@ -10,25 +11,29 @@ module.exports = async (req, res, next) => {
   // authType === Bearer 값인지 확인
   // authToken 검증
   if (authType !== "Bearer" || !authToken) {
-    return res.status(403).json({ errorMessage: "로그인이 필요한 기능입니다." });
+    return res
+      .status(403)
+      .json({ errorMessage: "로그인이 필요한 기능입니다." });
   }
 
   // JWT 검증
   try {
     // authToken이 만료되었는지 확인
     // authToken이 서버가 발급한 토큰이 맞는지 검증
-    const decodedToken = jwt.verify(authToken, "customized-secret-key");
+    const decodedToken = jwt.verify(authToken, secretKey.key);
     const userId = decodedToken.userId;
 
     // authToken에 있는 userId에 해당하는 사용자가 실제 DB에 존재하는지 확인
     const user = await Users.findOne({ where: { userId } });
-    // console.log("터미널 확인=>", user); 
+    // console.log("터미널 확인=>", user);
     res.locals.user = user;
 
     next();
   } catch (error) {
     console.error(error);
-    res.status(403).json({ errorMessage: "전달된 쿠키에서 오류가 발생하였습니다." });
+    res
+      .status(403)
+      .json({ errorMessage: "전달된 쿠키에서 오류가 발생하였습니다." });
     return;
   }
 };
