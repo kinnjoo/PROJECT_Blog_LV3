@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const { Users } = require("../models");
 const secretKey = require("../config/secretKey.json");
 
 module.exports = async (req, res, next) => {
